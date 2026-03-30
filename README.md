@@ -21,7 +21,7 @@ Load a pretrained model from HuggingFace and predict brain responses to a video:
 ```python
 from tribev2 import TribeModel
 
-model = TribeModel.from_pretrained("facebook/tribev2-mini", cache_folder="./cache")
+model = TribeModel.from_pretrained("facebook/tribev2", cache_folder="./cache")
 
 df = model.get_events_dataframe(video_path="path/to/video.mp4")
 preds, segments = model.predict(events=df)
