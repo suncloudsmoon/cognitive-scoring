@@ -4,7 +4,7 @@
 
 **A Foundation Model of Vision, Audition, and Language for In-Silico Neuroscience**
 
-[![PyPI](https://img.shields.io/pypi/v/tribev2.svg)](https://pypi.org/project/tribev2/)
+[![PyPI](https://img.shields.io/pypi/v/cognitive-scoring.svg)](https://pypi.org/project/cognitive-scoring/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/facebookresearch/tribev2/blob/main/tribe_demo.ipynb)
@@ -18,7 +18,7 @@ TRIBE v2 is a deep multimodal brain encoding model from Meta AI that predicts fM
 ## Quick Start
 
 ```bash
-pip install tribev2
+pip install cognitive-scoring
 ```
 
 ### Two-line API
@@ -40,7 +40,7 @@ print(result.summary())       # Full formatted output with bar charts
 ### HTTP API
 
 ```bash
-pip install tribev2[server]
+pip install cognitive-scoring[server]
 python -c "from tribev2.server import main; main()"
 ```
 
@@ -68,19 +68,19 @@ print(preds.shape)  # (n_timesteps, 20484)
 
 ```bash
 # Core (text + audio inference)
-pip install tribev2
+pip install cognitive-scoring
 
 # With video support (adds torchvision + moviepy)
-pip install tribev2[video]
+pip install cognitive-scoring[video]
 
 # With HTTP API server
-pip install tribev2[server]
+pip install cognitive-scoring[server]
 
 # With brain visualization (3D surface plots)
-pip install tribev2[plotting]
+pip install cognitive-scoring[plotting]
 
 # Everything except training
-pip install tribev2[all]
+pip install cognitive-scoring[all]
 
 # For development
 pip install -e ".[all,test]"
