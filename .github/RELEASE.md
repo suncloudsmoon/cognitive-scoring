@@ -53,7 +53,7 @@ Update the comparison links at the bottom of the file:
 [1.1.0]: https://github.com/suncloudsmoon/cognitive-scoring/compare/v1.0.0...v1.1.0
 ```
 
-### 3. Commit and tag
+### 3. Commit, tag, and push
 
 ```bash
 git add pyproject.toml CHANGELOG.md
@@ -62,13 +62,14 @@ git tag v1.1.0
 git push origin main --tags
 ```
 
-### 4. Create GitHub Release
+Pushing the `v1.1.0` tag automatically triggers `release.yml`, which builds
+the distribution and publishes to PyPI via OIDC. No GitHub Release required.
 
-1. Go to **Releases → Draft a new release**
-2. Select the `v1.1.0` tag
-3. Set the title to `v1.1.0`
-4. Paste the changelog section as the release notes
-5. Click **Publish release**
+### 4. (Optional) Create GitHub Release for visibility
+
+After PyPI publishing succeeds, you can create a GitHub Release from the tag
+so the changelog appears on the repo's Releases page. This is purely for UX
+and does not trigger anything.
 
 ### 5. Verify
 
@@ -102,6 +103,7 @@ doesn't match. Double check:
 
 ### Build succeeds but publish is skipped
 
-The publish job only runs on `release: published` events. If you pushed a
-tag without creating a GitHub Release, the build completes but publishing
-is skipped. Create the GitHub Release to trigger publishing.
+The publish job only runs when a tag is pushed (`refs/tags/v*`). If you
+triggered the workflow via **Run workflow** from the Actions tab without
+pushing a tag, the build runs in debug mode and publishing is skipped by
+design. Push a `v*` tag to publish.

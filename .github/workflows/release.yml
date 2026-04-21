@@ -1,4 +1,4 @@
-# Publish cognitive-scoring to PyPI when a GitHub Release is published.
+# Publish cognitive-scoring to PyPI when a v* tag is pushed.
 #
 # Prerequisites (one-time setup):
 #   1. Go to https://pypi.org/manage/project/cognitive-scoring/settings/publishing/
@@ -10,15 +10,15 @@
 #
 # Usage:
 #   1. Bump version in pyproject.toml
-#   2. Commit, tag (git tag v1.1.0), and push (git push origin v1.1.0)
-#   3. Create a GitHub Release from the tag
-#   4. This workflow runs automatically and publishes to PyPI
+#   2. Commit, tag (git tag v1.1.0), and push (git push origin main --tags)
+#   3. Pushing the tag triggers this workflow and publishes to PyPI
 
 name: Release to PyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
   # Allow manual triggering for debugging (build-only, no publish)
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
           echo "📦 pyproject.toml version: $VERSION"
 
       - name: Compare with git tag
-        if: github.event_name == 'release'
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           TAG="${GITHUB_REF_NAME}"
           EXPECTED="v${{ steps.version.outputs.version }}"
@@ -92,12 +92,12 @@ jobs:
           retention-days: 30
 
   # ──────────────────────────────────────────────────────────────
-  # 3. Publish to PyPI (only on GitHub Release)
+  # 3. Publish to PyPI (only on tag push)
   # ──────────────────────────────────────────────────────────────
   publish:
     name: Publish to PyPI
     needs: build
-    if: github.event_name == 'release'
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
     environment:
