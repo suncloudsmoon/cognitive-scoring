@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cognitive-scoring"
-version = "1.0.0"
+version = "1.0.1"
 description = "Predict brain activity from text, audio, and video using Meta's TRIBE v2 model"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -28,6 +28,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent",
 ]
 
@@ -36,7 +37,7 @@ classifiers = [
 dependencies = [
   "neuralset==0.0.2",
   "neuraltrain==0.0.2",
-  "torch>=2.5.1,<2.7",
+  "torch>=2.5.1,<3",
   "numpy>=2.1,<3",
   "x_transformers==1.27.20",
   "einops",
@@ -68,7 +69,7 @@ tribe-menubar = "tribev2.menubar:main"
 [project.optional-dependencies]
   # Video/audio-from-video support (torchvision for V-JEPA, moviepy for extraction)
   video = [
-    "torchvision>=0.20,<0.22",
+    "torchvision>=0.20,<1",
     "moviepy>=2.2.1",
   ]
   # Brain surface visualization (3D heatmaps)
@@ -96,7 +97,7 @@ tribe-menubar = "tribev2.menubar:main"
   ]
   # INT8 quantization for reduced memory
   optimized = [
-    "torchao>=0.9,<0.10",
+    "torchao>=0.9,<1",
   ]
   # macOS menu bar app
   menubar = [

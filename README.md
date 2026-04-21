@@ -7,9 +7,9 @@
 [![PyPI](https://img.shields.io/pypi/v/cognitive-scoring.svg)](https://pypi.org/project/cognitive-scoring/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/facebookresearch/tribev2/blob/main/tribe_demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/suncloudsmoon/cognitive-scoring/blob/main/tribe_demo.ipynb)
 
-📄 [Paper](https://ai.meta.com/research/publications/a-foundation-model-of-vision-audition-and-language-for-in-silico-neuroscience/) ▶️ [Demo](https://aidemos.atmeta.com/tribev2/) | 🤗 [Weights](https://huggingface.co/facebook/tribev2)
+📄 [Paper](https://ai.meta.com/research/publications/a-foundation-model-of-vision-audition-and-language-for-in-silico-neuroscience/) | 🤗 [Weights](https://huggingface.co/facebook/tribev2)
 
 </div>
 
@@ -95,7 +95,8 @@ pip install -e ".[all,test]"
 | `plotting` | nilearn, pyvista, matplotlib | Brain surface heatmaps |
 | `training` | lightning, wandb, torchmetrics | Model training from scratch |
 | `optimized` | torchao | INT8 quantization |
-| `all` | video + plotting + server + optimized | Everything |
+| `menubar` | rumps, pyobjc | macOS menu bar app for server lifecycle |
+| `all` | video + plotting + server + optimized + menubar | Everything |
 
 ## What You Get
 
@@ -195,7 +196,7 @@ You may use, share, and adapt this material for **non-commercial purposes only**
 > particular purpose, or non-infringement. In no event shall the licensor be
 > liable for any damages arising from use of this software.
 
-**Modifications:** This repository contains modifications to the original TRIBE v2 codebase by Meta Platforms, Inc., including (among other things) a high-level Python API, an HTTP server, ROI-based brain-state scoring, and Apple Silicon compatibility patches. For a complete record of all changes, see the [git history](https://github.com/facebookresearch/tribev2/commits). These modifications are also licensed under CC BY-NC 4.0.
+**Modifications:** This repository contains modifications to the original TRIBE v2 codebase by Meta Platforms, Inc., including (among other things) a high-level Python API, an HTTP server, ROI-based brain-state scoring, and Apple Silicon compatibility patches. For a complete record of all changes, see the [git history](https://github.com/suncloudsmoon/cognitive-scoring/commits). These modifications are also licensed under CC BY-NC 4.0.
 
 ## Contributing
 

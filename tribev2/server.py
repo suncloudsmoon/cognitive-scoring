@@ -227,7 +227,7 @@ def _reset_idle_timer():
     global _unload_task
     if _unload_task is not None:
         _unload_task.cancel()
-    _unload_task = asyncio.get_event_loop().create_task(_unload_after_idle())
+    _unload_task = asyncio.get_running_loop().create_task(_unload_after_idle())
 
 
 async def _ensure_loaded():
@@ -255,7 +255,7 @@ async def _ensure_loaded():
         logger.info("Loading TRIBE v2 model (lazy)...")
         t0 = time.time()
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         _brain_api = await loop.run_in_executor(
             None,
             lambda: BrainAPI.load(
@@ -603,7 +603,7 @@ async def analyze(request: AnalyzeRequest):
     api = await _ensure_loaded()
 
     async with _inference_lock:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         t0 = time.time()
         try:
             result = await loop.run_in_executor(
@@ -642,7 +642,7 @@ async def compare(request: CompareRequest):
     api = await _ensure_loaded()
 
     async with _inference_lock:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         t0 = time.time()
         try:
             result_a = await loop.run_in_executor(
