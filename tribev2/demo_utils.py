@@ -46,6 +46,28 @@ VALID_SUFFIXES: dict[str, set[str]] = {
 }
 
 
+def _check_video_deps() -> None:
+    """Verify that optional video dependencies are installed.
+
+    Raises ``ImportError`` with a clear pip install command if
+    torchvision or moviepy are missing.
+    """
+    missing = []
+    try:
+        import torchvision  # noqa: F401
+    except ImportError:
+        missing.append("torchvision")
+    try:
+        import moviepy  # noqa: F401
+    except ImportError:
+        missing.append("moviepy")
+    if missing:
+        raise ImportError(
+            f"Video support requires {', '.join(missing)}. "
+            f"Install with: pip install tribev2[video]"
+        )
+
+
 def download_file(url: str, path: str | Path) -> Path:
     """Download a file from *url* and save it to *path*.
 
@@ -190,7 +212,7 @@ class TribeModel(TribeExperiment):
         if cache_folder is not None:
             Path(cache_folder).mkdir(parents=True, exist_ok=True)
         if device == "auto":
-            device = "cuda" if torch.cuda.is_available() else "cpu"
+            device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
         checkpoint_dir = Path(checkpoint_dir)
         if checkpoint_dir.exists():
             config_path = checkpoint_dir / "config.yaml"
@@ -220,6 +242,13 @@ class TribeModel(TribeExperiment):
         config["cache_folder"] = (
             str(cache_folder) if cache_folder is not None else "./cache"
         )
+        # Cap DataLoader workers to avoid spawn overhead on consumer hardware.
+        # The pretrained config uses 20 workers (for cluster use); on a Mac Mini
+        # with 10 cores, spawning 20 workers adds ~5s of overhead per predict().
+        import multiprocessing
+        max_workers = min(multiprocessing.cpu_count(), 4)
+        if config.get("data.num_workers", 99) > max_workers:
+            config["data.num_workers"] = max_workers
         if config_update is not None:
             config.update(config_update)
         xp = cls(**config)
@@ -236,6 +265,7 @@ class TribeModel(TribeExperiment):
         model.load_state_dict(state_dict, strict=True, assign=True)
         del state_dict
         model.to(device)
+        model.half()  # float16 inference saves ~338 MB with negligible accuracy loss
         model.eval()
         xp._model = model
         return xp
@@ -308,6 +338,10 @@ class TribeModel(TribeExperiment):
                 text=text,
                 infra={"folder": self.cache_folder, "mode": "retry"},
             ).get_events()
+
+        # Video support requires optional dependencies
+        if video_path is not None:
+            _check_video_deps()
 
         event_type = "Audio" if audio_path is not None else "Video"
         event = {

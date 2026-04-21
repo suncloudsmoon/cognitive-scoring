@@ -179,6 +179,7 @@ class FmriEncoderModel(nn.Module):
 
     def aggregate_features(self, batch):
         tensors = []
+        model_dtype = next(self.parameters()).dtype
         # get B, T
         for modality in batch.data.keys():
             if modality in self.feature_dims:
@@ -188,11 +189,12 @@ class FmriEncoderModel(nn.Module):
         for modality in self.feature_dims.keys():
             if modality not in self.projectors or modality not in batch.data:
                 data = torch.zeros(
-                    B, T, self.config.hidden // len(self.feature_dims)
-                ).to(x.device)
+                    B, T, self.config.hidden // len(self.feature_dims),
+                    dtype=model_dtype, device=x.device,
+                )
             else:
                 data = batch.data[modality]  # B, L, H, T
-                data = data.to(torch.float32)
+                data = data.to(model_dtype)
                 if data.ndim == 3:
                     data = data.unsqueeze(1)
                 # mean over layers

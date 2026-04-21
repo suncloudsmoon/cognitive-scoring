@@ -3,40 +3,75 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tribev2"
-version = "0.1.0"
-description = "Deep multimodal brain encoding"
+name = "cognitive-scoring"
+version = "1.0.0"
+description = "Predict brain activity from text, audio, and video using Meta's TRIBE v2 model"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {file = "LICENSE"}
 authors = [{name = "Meta Platforms, Inc."}]
+keywords = [
+  "neuroscience",
+  "fmri",
+  "brain",
+  "encoding",
+  "multimodal",
+  "transformer",
+  "deep-learning",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
+]
 
+# Core dependencies: enough to run text-only inference + BrainAPI.
+# Video support (torchvision, moviepy) is optional — install cognitive-scoring[video].
 dependencies = [
   "neuralset==0.0.2",
   "neuraltrain==0.0.2",
   "torch>=2.5.1,<2.7",
-  "numpy==2.2.6",
-  "torchvision>=0.20,<0.22",
+  "numpy>=2.1,<3",
   "x_transformers==1.27.20",
   "einops",
   "pyyaml",
-  "moviepy>=2.2.1",
+  "pydantic",
+  "pandas",
+  "requests",
   "huggingface_hub",
   "gtts",
   "langdetect",
   "spacy",
   "soundfile",
-  "pip",
   "Levenshtein",
   "julius",
-  "transformers"
+  "transformers",
+  "tqdm",
+  "exca",
 ]
 
 [project.urls]
-Homepage = "https://github.com/facebookresearch/tribev2"
-Repository = "https://github.com/facebookresearch/tribev2"
+Homepage = "https://github.com/suncloudsmoon/cognitive-scoring"
+Repository = "https://github.com/suncloudsmoon/cognitive-scoring"
+Documentation = "https://github.com/suncloudsmoon/cognitive-scoring/tree/main/wiki"
+
+[project.scripts]
+tribe-server = "tribev2.server:main"
+tribe-menubar = "tribev2.menubar:main"
 
 [project.optional-dependencies]
+  # Video/audio-from-video support (torchvision for V-JEPA, moviepy for extraction)
+  video = [
+    "torchvision>=0.20,<0.22",
+    "moviepy>=2.2.1",
+  ]
+  # Brain surface visualization (3D heatmaps)
   plotting = [
     "nibabel",
     "matplotlib",
@@ -47,14 +82,34 @@ Repository = "https://github.com/facebookresearch/tribev2"
     "pyvista",
     "scikit-image",
   ]
+  # HTTP API server
+  server = [
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.20",
+  ]
+  # Model training
   training = [
     "nibabel",
     "torchmetrics",
     "wandb",
-    "lightning",  
+    "lightning",
   ]
+  # INT8 quantization for reduced memory
+  optimized = [
+    "torchao>=0.9,<0.10",
+  ]
+  # macOS menu bar app
+  menubar = [
+    "rumps>=0.4.0",
+    "pyobjc-framework-Cocoa>=10.0",
+  ]
+  # Testing
   test = [
     "pytest",
+  ]
+  # Everything (except training)
+  all = [
+    "cognitive-scoring[video,plotting,server,optimized,menubar]",
   ]
 
 [tool.black]
@@ -64,4 +119,7 @@ line-length = 88
 profile = "black"
 
 [tool.setuptools.packages.find]
-include = ["tribe*"]
+include = ["tribev2*"]
+
+[tool.setuptools.package-data]
+tribev2 = ["py.typed", "LICENSE"]

@@ -62,14 +62,17 @@ def _free_extractor_model(extractor: ns.extractors.BaseExtractor) -> None:
     Extractors lazily load models onto GPU during ``prepare`` and keep them
     in ``_model``.  Since results are persisted to disk, the model is no
     longer needed afterwards and this frees VRAM for subsequent extractors.
+
+    Also frees ``_tokenizer`` (used by text extractors) so that the full
+    memory footprint of the extractor is reclaimed between pipeline stages.
     """
     targets = [extractor]
     if hasattr(extractor, "image"):
         targets.append(extractor.image)
     for target in targets:
-        for attr in ("_model",):
+        for attr in ("_model", "_tokenizer"):
             obj = getattr(target, attr, None)
-            if isinstance(obj, torch.nn.Module):
+            if obj is not None:
                 try:
                     delattr(target, attr)
                 except Exception:
@@ -77,6 +80,8 @@ def _free_extractor_model(extractor: ns.extractors.BaseExtractor) -> None:
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+    if hasattr(torch, "mps") and torch.backends.mps.is_available():
+        torch.mps.empty_cache()
 
 
 class Data(pydantic.BaseModel):
@@ -295,7 +300,7 @@ class TribeExperiment(BaseExperiment):
     # Weights & Biases
     wandb_config: WandbLoggerConfig | None = None
     # Hardware
-    accelerator: str = "gpu"
+    accelerator: str = "auto"
     # Optim
     n_epochs: int | None = 10
     max_steps: int = -1
@@ -554,9 +559,18 @@ class TribeExperiment(BaseExperiment):
                 )
             )
 
+        n_devices = override_n_devices or self.infra.gpus_per_node
+        # MPS only supports 1 device and does not support FSDP
+        if self.accelerator == "mps" or (
+            self.accelerator == "auto" and not torch.cuda.is_available()
+        ):
+            n_devices = max(n_devices, 1)
+            strategy = "auto"
+        else:
+            strategy = "auto" if n_devices == 1 else "fsdp"
         trainer = pl.Trainer(
-            strategy="auto" if self.infra.gpus_per_node == 1 else "fsdp",
-            devices=override_n_devices or self.infra.gpus_per_node,
+            strategy=strategy,
+            devices=n_devices,
             accelerator=self.accelerator,
             max_epochs=self.n_epochs,
             max_steps=self.max_steps,

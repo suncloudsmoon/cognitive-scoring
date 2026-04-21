@@ -1,0 +1,120 @@
+# Publish cognitive-scoring to PyPI when a GitHub Release is published.
+#
+# Prerequisites (one-time setup):
+#   1. Go to https://pypi.org/manage/project/cognitive-scoring/settings/publishing/
+#   2. Add a Trusted Publisher:
+#        - Owner:       suncloudsmoon
+#        - Repository:  cognitive-scoring
+#        - Workflow:    release.yml
+#        - Environment: pypi
+#
+# Usage:
+#   1. Bump version in pyproject.toml
+#   2. Commit, tag (git tag v1.1.0), and push (git push origin v1.1.0)
+#   3. Create a GitHub Release from the tag
+#   4. This workflow runs automatically and publishes to PyPI
+
+name: Release to PyPI
+
+on:
+  release:
+    types: [published]
+
+  # Allow manual triggering for debugging (build-only, no publish)
+  workflow_dispatch:
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # 1. Validate that the git tag matches pyproject.toml version
+  # ──────────────────────────────────────────────────────────────
+  check:
+    name: Validate version
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(python3 -c "
+          import tomllib, pathlib
+          data = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
+          print(data['project']['version'])
+          ")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 pyproject.toml version: $VERSION"
+
+      - name: Compare with git tag
+        if: github.event_name == 'release'
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          EXPECTED="v${{ steps.version.outputs.version }}"
+          echo "🏷️  Git tag:  $TAG"
+          echo "📦 Expected: $EXPECTED"
+          if [ "$TAG" != "$EXPECTED" ]; then
+            echo "::error::Tag '$TAG' does not match pyproject.toml version '$EXPECTED'"
+            exit 1
+          fi
+          echo "✅ Tag matches version"
+
+  # ──────────────────────────────────────────────────────────────
+  # 2. Build sdist and wheel
+  # ──────────────────────────────────────────────────────────────
+  build:
+    name: Build distribution
+    needs: check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: python -m pip install --upgrade pip build
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: List artifacts
+        run: ls -lh dist/
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+  # ──────────────────────────────────────────────────────────────
+  # 3. Publish to PyPI (only on GitHub Release)
+  # ──────────────────────────────────────────────────────────────
+  publish:
+    name: Publish to PyPI
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: pypi
+      url: https://pypi.org/project/cognitive-scoring/
+
+    # Required for OIDC Trusted Publishers
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # No API token needed — uses OIDC Trusted Publishers
